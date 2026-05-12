@@ -546,7 +546,8 @@ nav a:hover {
 }
 
 .operator-brief,
-.timeline {
+.timeline,
+.sim-code-panel {
   min-height: 250px;
   padding: 18px;
   border: 1px solid var(--line);
@@ -558,6 +559,50 @@ nav a:hover {
   display: grid;
   gap: 10px;
   align-content: start;
+}
+
+.sim-code-panel {
+  grid-column: 1 / -1;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.code-header-small {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.mini-copy {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mini-copy:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--ink);
+}
+
+.sim-code-panel pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  color: #d9e8ff;
+  font-size: 0.92rem;
+  line-height: 1.65;
 }
 
 label {

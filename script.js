@@ -7,6 +7,8 @@ const operatorTitle = document.querySelector("#operatorTitle");
 const operatorDescription = document.querySelector("#operatorDescription");
 const runOperator = document.querySelector("#runOperator");
 const timeline = document.querySelector("#timeline");
+const simulationCode = document.querySelector("#simulationCode");
+const copySimulationCode = document.querySelector("#copySimulationCode");
 const demoPaywallButton = document.querySelector("#demoPaywallButton");
 const paymentModal = document.querySelector("#paymentModal");
 const fakePayButton = document.querySelector("#fakePayButton");
@@ -21,12 +23,18 @@ let simulationTimers = [];
 const operatorInfo = {
   map: {
     title: "map",
-    description: "ใช้แปลงค่าที่ได้จาก stream เป็นค่าใหม่ เช่น เลือกเฉพาะ field ที่ต้องใช้ หรือคำนวณค่าเพิ่มก่อนส่งต่อ",
+    description: "ใช้แปลงค่าที่ไหลมาใน stream เป็นค่าใหม่ โดยจำนวนรอบยังเท่าเดิม แต่รูปร่างหรือค่าข้างในเปลี่ยนตาม callback ที่เรา return",
     events: [
-      ["ก่อน", "API ส่งรายการสินค้าแบบ raw data", "waiting"],
-      ["map", "เลือก id, name และคำนวณ priceWithVat", "shared"],
-      ["หลัง", "component ได้ object ใหม่ที่ใช้แสดงผลได้ตรงขึ้น", "done"],
+      ["ก่อน map", "{ id: 7, name: 'Keyboard', price: 1000 }", "waiting"],
+      ["callback", "return { name, priceWithVat: price * 1.07 }", "shared"],
+      ["หลัง map", "{ name: 'Keyboard', priceWithVat: 1070 }", "done"],
     ],
+    code: `products$.pipe(
+  map((product) => ({
+    name: product.name,
+    priceWithVat: product.price * 1.07,
+  }))
+);`,
   },
   filter: {
     title: "filter",
@@ -37,6 +45,9 @@ const operatorInfo = {
       ["input", "ค่าว่างถูกข้าม", "ignored"],
       ["input", "พิมพ์ 'angular' ส่งต่อไปเรียก API", "done"],
     ],
+    code: `searchControl.valueChanges.pipe(
+  filter((keyword) => keyword.trim().length >= 2)
+);`,
   },
   tap: {
     title: "tap",
@@ -47,6 +58,10 @@ const operatorInfo = {
       ["response", "ข้อมูลสินค้ายังเป็นชุดเดิม ไม่ถูกแก้", "done"],
       ["tap", "log จำนวนสินค้าที่โหลดได้", "shared"],
     ],
+    code: `products$.pipe(
+  tap(() => loading.set(true)),
+  tap((products) => console.log(products.length))
+);`,
   },
   startWith: {
     title: "startWith",
@@ -56,6 +71,9 @@ const operatorInfo = {
       ["ผู้ใช้เลือก", "category เปลี่ยนเป็น 'books'", "shared"],
       ["ผู้ใช้เลือก", "category เปลี่ยนเป็น 'courses'", "shared"],
     ],
+    code: `categoryControl.valueChanges.pipe(
+  startWith('all')
+);`,
   },
   debounceTime: {
     title: "debounceTime",
@@ -66,6 +84,9 @@ const operatorInfo = {
       ["พิมพ์ต่อ", "angular", "waiting"],
       ["หยุดพิมพ์", "ส่งค่า 'angular' ไปค้นหา", "done"],
     ],
+    code: `searchControl.valueChanges.pipe(
+  debounceTime(300)
+);`,
   },
   switchMap: {
     title: "switchMap",
@@ -77,6 +98,10 @@ const operatorInfo = {
       ["พิมพ์ใหม่", "request 'an' ถูกยกเลิก", "cancelled"],
       ["ล่าสุด", "ใช้ผลลัพธ์ของคำว่า 'angular'", "done"],
     ],
+    code: `searchControl.valueChanges.pipe(
+  debounceTime(300),
+  switchMap((keyword) => productService.search(keyword))
+);`,
   },
   mergeMap: {
     title: "mergeMap",
@@ -89,6 +114,9 @@ const operatorInfo = {
       ["เสร็จ", "file A เสร็จ", "done"],
       ["เสร็จ", "file C เสร็จ", "done"],
     ],
+    code: `from(files).pipe(
+  mergeMap((file) => uploadService.upload(file), 3)
+);`,
   },
   concatMap: {
     title: "concatMap",
@@ -101,6 +129,9 @@ const operatorInfo = {
       ["ต่อคิว", "save B เสร็จ แล้วค่อยเริ่ม C", "done"],
       ["จบ", "save C เสร็จ", "done"],
     ],
+    code: `from(changes).pipe(
+  concatMap((change) => documentService.save(change))
+);`,
   },
   exhaustMap: {
     title: "exhaustMap",
@@ -111,6 +142,9 @@ const operatorInfo = {
       ["click", "ครั้งที่ 3 ถูกข้ามเช่นกัน", "ignored"],
       ["เสร็จ", "request แรกจบแล้ว จึงรับ click ใหม่ได้", "done"],
     ],
+    code: `submitClicks$.pipe(
+  exhaustMap(() => authService.login(form.getRawValue()))
+);`,
   },
   forkJoin: {
     title: "forkJoin",
@@ -122,6 +156,11 @@ const operatorInfo = {
       ["เสร็จ", "orders โหลดเสร็จ", "done"],
       ["รวมผล", "ได้ข้อมูลครบแล้วค่อย render dashboard", "shared"],
     ],
+    code: `forkJoin({
+  profile: userService.getProfile(),
+  orders: orderService.getRecentOrders(),
+  alerts: alertService.getUnreadAlerts(),
+});`,
   },
   combineLatest: {
     title: "combineLatest",
@@ -133,6 +172,15 @@ const operatorInfo = {
       ["filter", "category เปลี่ยนเป็น books จึงคำนวณใหม่", "shared"],
       ["sort", "sort เปลี่ยนเป็น price จึงคำนวณใหม่", "shared"],
     ],
+    code: `combineLatest([
+  products$,
+  categoryControl.valueChanges.pipe(startWith('all')),
+  sortControl.valueChanges.pipe(startWith('popular')),
+]).pipe(
+  map(([products, category, sort]) =>
+    filterAndSort(products, category, sort)
+  )
+);`,
   },
   catchError: {
     title: "catchError",
@@ -143,6 +191,9 @@ const operatorInfo = {
       ["fallback", "catchError คืนค่า []", "shared"],
       ["แสดงผล", "หน้าเว็บแสดง empty state แทนการล้ม", "done"],
     ],
+    code: `products$.pipe(
+  catchError(() => of([]))
+);`,
   },
   shareReplay: {
     title: "shareReplay",
@@ -153,6 +204,9 @@ const operatorInfo = {
       ["B", "Component B ขอข้อมูล user ทีหลัง", "shared"],
       ["cache", "Component B ได้ค่าเดิมทันที ไม่ต้องเรียก API ซ้ำ", "done"],
     ],
+    code: `currentUser$ = http.get<User>('/api/me').pipe(
+  shareReplay({ bufferSize: 1, refCount: true })
+);`,
   },
 };
 
@@ -172,6 +226,7 @@ function renderOperatorInfo() {
   const info = operatorInfo[selectedOperator];
   operatorTitle.textContent = info.title;
   operatorDescription.textContent = info.description;
+  simulationCode.textContent = info.code;
 }
 
 function runOperatorSimulation() {
@@ -308,6 +363,17 @@ function initCopyButtons() {
   });
 }
 
+function initSimulationCodeCopy() {
+  copySimulationCode.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(simulationCode.textContent);
+    const original = copySimulationCode.textContent;
+    copySimulationCode.textContent = "Copied";
+    setTimeout(() => {
+      copySimulationCode.textContent = original;
+    }, 1200);
+  });
+}
+
 function openPaymentModal() {
   paymentModal.classList.add("open");
   paymentModal.setAttribute("aria-hidden", "false");
@@ -366,6 +432,7 @@ document.addEventListener("keydown", (event) => {
 initOperatorPicker();
 initTabs();
 initCopyButtons();
+initSimulationCodeCopy();
 renderOperatorInfo();
 runOperatorSimulation();
 simulateSwitchMap(searchInput.value);
