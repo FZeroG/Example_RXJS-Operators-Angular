@@ -21,15 +21,15 @@
     <section class="hero" id="hero">
       <div class="hero-copy">
         <p class="eyebrow">Basic to Advanced RxJS</p>
-        <h1>จัดระเบียบงาน Async ใน Angular ด้วย RxJS Operators</h1>
+        <h1>อ่านและควบคุม Observable Flow ใน Angular ด้วย RxJS Operators</h1>
         <p>
-          คู่มือฉบับย่อสำหรับทำความเข้าใจ RxJS operators ที่ใช้บ่อยใน Angular
-          ตั้งแต่พื้นฐานไปจนถึงระดับ advanced ครอบคลุมการแปลงข้อมูล การกรองค่า
-          การหน่วงเวลา การจัดการ error การยกเลิกงาน การรวมหลาย stream และการ cache ข้อมูล.
-          แก่นสำคัญคือเลือก operator ให้ตรงกับพฤติกรรมของงาน asynchronous ที่ต้องการ.
+          คู่มือสำหรับอ่าน flow ของ Observable ใน Angular ให้เข้าใจง่ายขึ้น:
+          แต่ละ operator รับค่าอะไรจาก stream, คืนค่าอะไรออกไป, และควรใช้เมื่อใด.
+          ครอบคลุมตั้งแต่การแปลงค่า กรองค่า หน่วง input จัดการ error
+          ไปจนถึงการควบคุม request หลายชุดและการ cache ผลลัพธ์.
         </p>
         <div class="hero-actions">
-          <a class="primary-link" href="#playground">ลอง interactive demo</a>
+          <a class="primary-link" id="demoPaywallButton" href="#playground">ลอง interactive demo</a>
           <a class="secondary-link" href="rxjs-operators-angular.md">อ่าน Markdown</a>
         </div>
       </div>
@@ -37,17 +37,17 @@
         <div class="stream-card active">
           <span>transform</span>
           <strong>map</strong>
-          <small>แปลงข้อมูลจาก API ให้อยู่ในรูปแบบที่ UI ใช้ได้ง่าย</small>
+          <small>รับค่าจาก stream แล้วคืนค่าใหม่ เช่น เลือก field หรือคำนวณค่าเพิ่ม</small>
         </div>
         <div class="stream-card success">
           <span>user input</span>
           <strong>debounceTime</strong>
-          <small>รอให้ผู้ใช้หยุดพิมพ์ก่อนเริ่มค้นหา</small>
+          <small>รอ input นิ่งก่อนปล่อยค่าล่าสุดไปเรียก API</small>
         </div>
         <div class="stream-card warm">
           <span>HTTP flow</span>
           <strong>switchMap</strong>
-          <small>ใช้ผลลัพธ์ล่าสุด และยกเลิกงานเก่าที่ไม่จำเป็น</small>
+          <small>ค่าใหม่มาเมื่อไร ยกเลิก request เก่าแล้วเริ่ม request ใหม่</small>
         </div>
       </div>
     </section>
@@ -56,22 +56,22 @@
       <p class="eyebrow">Operator Map</p>
       <h2>ภาพรวม Operators ที่ควรรู้ ตั้งแต่พื้นฐานถึง Advanced</h2>
       <div class="operator-grid">
-        <article><span>Basic</span><h3>map</h3><p>แปลงข้อมูลใน stream ให้เป็นรูปแบบที่ต้องการ</p></article>
-        <article><span>Basic</span><h3>filter</h3><p>ส่งต่อเฉพาะค่าที่ผ่านเงื่อนไข</p></article>
-        <article><span>Basic</span><h3>tap</h3><p>ทำงานเสริม เช่น log หรือ set loading โดยไม่เปลี่ยนค่าหลัก</p></article>
-        <article><span>Basic</span><h3>startWith</h3><p>กำหนดค่าเริ่มต้นให้ stream ก่อนค่าจริงจะมาถึง</p></article>
-        <article><span>Timing</span><h3>debounceTime</h3><p>หน่วงเวลาเพื่อรอค่าที่นิ่ง เหมาะกับช่องค้นหา</p></article>
-        <article><span>Filtering</span><h3>distinctUntilChanged</h3><p>ข้ามค่าซ้ำที่ติดกัน ลดการเรียก API โดยไม่จำเป็น</p></article>
-        <article><span>Error</span><h3>catchError</h3><p>แปลง error ให้เป็นค่าทดแทนที่ UI รับมือได้</p></article>
-        <article><span>Cleanup</span><h3>takeUntil</h3><p>หยุด stream ตามสัญญาณที่กำหนด เช่น ตอน component ถูกทำลาย</p></article>
-        <article><span>Loading</span><h3>finalize</h3><p>ทำงานปิดท้ายเสมอ ไม่ว่า stream จะสำเร็จหรือ error</p></article>
-        <article><span>Flattening</span><h3>switchMap</h3><p>ใช้เฉพาะงานล่าสุด และยกเลิกงานเก่า</p></article>
-        <article><span>Flattening</span><h3>mergeMap</h3><p>เริ่มหลายงานพร้อมกัน เหมาะกับงานที่เป็นอิสระต่อกัน</p></article>
-        <article><span>Flattening</span><h3>concatMap</h3><p>จัดคิวงาน async ให้ทำตามลำดับ</p></article>
-        <article><span>Flattening</span><h3>exhaustMap</h3><p>ไม่รับ event ใหม่ระหว่างที่งานเดิมยังไม่เสร็จ</p></article>
-        <article><span>Combination</span><h3>forkJoin</h3><p>รอหลาย request ให้เสร็จครบ แล้วส่งผลลัพธ์ครั้งเดียว</p></article>
-        <article><span>Combination</span><h3>combineLatest</h3><p>รวมค่าล่าสุดจากหลาย stream เพื่อสร้าง state เดียว</p></article>
-        <article><span>Sharing</span><h3>shareReplay</h3><p>แชร์ผลลัพธ์ล่าสุดให้หลาย subscriber โดยไม่เรียกซ้ำ</p></article>
+        <article><span>Basic</span><h3>map</h3><p>รับค่าเดิมจาก stream แล้วคืนค่าใหม่ เช่น เลือก field หรือคำนวณค่าเพิ่ม</p></article>
+        <article><span>Basic</span><h3>filter</h3><p>ปล่อยค่าต่อเมื่อเงื่อนไขเป็นจริง เช่น keyword.length >= 2</p></article>
+        <article><span>Basic</span><h3>tap</h3><p>แทรก side effect เช่น log หรือ set loading โดยไม่แก้ค่าที่ส่งต่อ</p></article>
+        <article><span>Basic</span><h3>startWith</h3><p>emit ค่าเริ่มต้นทันที ก่อน valueChanges หรือ API จะส่งค่าจริง</p></article>
+        <article><span>Timing</span><h3>debounceTime</h3><p>รอให้ input หยุดเปลี่ยนช่วงหนึ่ง แล้วค่อยปล่อยค่าล่าสุด</p></article>
+        <article><span>Filtering</span><h3>distinctUntilChanged</h3><p>ข้ามค่าที่ซ้ำกับค่าก่อนหน้า ลด API call ซ้ำจาก input เดิม</p></article>
+        <article><span>Error</span><h3>catchError</h3><p>จับ error แล้วคืน Observable สำรอง เช่น of([]) หรือ of(null)</p></article>
+        <article><span>Cleanup</span><h3>takeUntil</h3><p>unsubscribe stream เมื่อ notifier emit เช่น component destroy</p></article>
+        <article><span>Loading</span><h3>finalize</h3><p>รัน callback ตอน stream จบ error หรือถูก unsubscribe เหมาะกับปิด loading</p></article>
+        <article><span>Flattening</span><h3>switchMap</h3><p>map ค่าเป็น request ใหม่ และ cancel request เก่าเมื่อ source emit อีกครั้ง</p></article>
+        <article><span>Flattening</span><h3>mergeMap</h3><p>map ค่าเป็นหลาย request ที่ทำพร้อมกัน เหมาะกับงานอิสระ</p></article>
+        <article><span>Flattening</span><h3>concatMap</h3><p>map ค่าเป็น request แบบต่อคิว รอให้ตัวก่อนหน้า complete ก่อน</p></article>
+        <article><span>Flattening</span><h3>exhaustMap</h3><p>ระหว่าง request ทำงานอยู่ จะไม่รับ event ใหม่</p></article>
+        <article><span>Combination</span><h3>forkJoin</h3><p>เริ่มหลาย Observable พร้อมกัน แล้ว emit เมื่อทุกตัว complete</p></article>
+        <article><span>Combination</span><h3>combineLatest</h3><p>รวมค่าล่าสุดจากหลาย stream แล้ว emit ใหม่เมื่อ stream ใดเปลี่ยน</p></article>
+        <article><span>Sharing</span><h3>shareReplay</h3><p>share subscription และ replay ค่าล่าสุดให้ subscriber ใหม่</p></article>
       </div>
     </section>
 
@@ -83,7 +83,7 @@
           <div class="panel-heading">
             <div>
               <h3>Operator Behavior Simulator</h3>
-              <p>เลือก operator แล้วกด run เพื่อดูว่า stream ตอบสนองต่อเหตุการณ์และงาน async อย่างไร</p>
+              <p>เลือก operator เพื่อดูว่า event เข้ามาอย่างไร request เริ่มตอนไหน และค่าไหนถูกส่งต่อ</p>
             </div>
           </div>
 
@@ -118,7 +118,7 @@
           <div class="panel-heading">
             <div>
               <h3>Search flow</h3>
-              <p>ตัวอย่างการค้นหาใน Angular: หน่วงเวลา กันค่าซ้ำ และใช้ผลลัพธ์ล่าสุด</p>
+              <p>valueChanges -> debounceTime -> distinctUntilChanged -> switchMap ไปยัง HTTP search</p>
             </div>
           </div>
           <label for="searchInput">ลองพิมพ์คำค้นหา</label>
@@ -130,7 +130,7 @@
           <div class="panel-heading">
             <div>
               <h3>Dashboard load</h3>
-              <p>ตัวอย่างการโหลดข้อมูลหลาย API พร้อมกัน แล้วรอให้ครบก่อนแสดงผล</p>
+              <p>forkJoin รวม profile$, orders$ และ alerts$ แล้ว render เมื่อ complete ครบ</p>
             </div>
           </div>
           <button class="load-button" id="loadDashboard" type="button">Load dashboard data</button>
@@ -169,7 +169,8 @@
 <pre><code>readonly products$ = this.productService.getProducts().pipe(
   map((products) =&gt; products.map((item) =&gt; ({
     id: item.id,
-    label: `${item.name} - ${item.price} THB`,
+    name: item.name,
+    priceWithVat: item.price * 1.07,
     inStock: item.stock &gt; 0,
   }))),
   filter((products) =&gt; products.length &gt; 0),
@@ -237,6 +238,47 @@ ngOnInit() {
       </article>
     </section>
   </main>
+
+  <div class="payment-modal" id="paymentModal" aria-hidden="true">
+    <div class="payment-backdrop" data-close-payment></div>
+    <section class="payment-card" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+      <button class="modal-close" type="button" aria-label="ปิดหน้าชำระเงิน" data-close-payment>×</button>
+      <p class="eyebrow">Secure Sandbox Checkout</p>
+      <h2 id="paymentTitle">ปลดล็อก Interactive Demo</h2>
+      <p class="payment-note">
+        กรอกข้อมูลบัตรเพื่อยืนยันการเข้าถึง Interactive Demo ระบบจะพาไปยังหน้าทดลองใช้งานหลังยืนยันสำเร็จ.
+      </p>
+
+      <form class="checkout-form" id="checkoutForm">
+        <label for="cardName">ชื่อบนบัตร</label>
+        <input id="cardName" name="cardName" type="text" autocomplete="cc-name" placeholder="Taya RxJS" required>
+
+        <label for="cardNumber">เลขบัตร</label>
+        <input id="cardNumber" name="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="4242 4242 4242 4242" required>
+
+        <div class="form-row">
+          <div>
+            <label for="cardExpiry">วันหมดอายุ</label>
+            <input id="cardExpiry" name="cardExpiry" type="text" autocomplete="cc-exp" placeholder="12/99" required>
+          </div>
+          <div>
+            <label for="cardCvv">CVV</label>
+            <input id="cardCvv" name="cardCvv" type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="123" required>
+          </div>
+        </div>
+      </form>
+
+      <div class="payment-lines">
+        <div><span>Interactive operator simulator</span><strong>฿0.00</strong></div>
+        <div><span>Service fee</span><strong>ฟรี</strong></div>
+        <div class="total"><span>รวมสุทธิ</span><strong>฿0.00</strong></div>
+      </div>
+
+      <p class="payment-status" id="paymentStatus" aria-live="polite"></p>
+      <button class="pay-button" id="fakePayButton" form="checkoutForm" type="submit">ยืนยันการชำระเงิน</button>
+      <button class="ghost-button" type="button" data-close-payment>ข้ามไปดู demo เลย</button>
+    </section>
+  </div>
 
   <footer>
     <p>เอกสารประกอบ: <a href="rxjs-operators-angular.md">rxjs-operators-angular.md</a></p>

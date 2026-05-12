@@ -7,6 +7,11 @@ const operatorTitle = document.querySelector("#operatorTitle");
 const operatorDescription = document.querySelector("#operatorDescription");
 const runOperator = document.querySelector("#runOperator");
 const timeline = document.querySelector("#timeline");
+const demoPaywallButton = document.querySelector("#demoPaywallButton");
+const paymentModal = document.querySelector("#paymentModal");
+const fakePayButton = document.querySelector("#fakePayButton");
+const checkoutForm = document.querySelector("#checkoutForm");
+const paymentStatus = document.querySelector("#paymentStatus");
 
 let activeSearchTimer = null;
 let requestId = 0;
@@ -16,137 +21,137 @@ let simulationTimers = [];
 const operatorInfo = {
   map: {
     title: "map",
-    description: "แปลงข้อมูลที่ไหลผ่าน stream โดยไม่เปลี่ยนจังหวะเวลา เหมาะกับการแปลง API response เป็น view model",
+    description: "ใช้แปลงค่าที่ได้จาก stream เป็นค่าใหม่ เช่น เลือกเฉพาะ field ที่ต้องใช้ หรือคำนวณค่าเพิ่มก่อนส่งต่อ",
     events: [
-      ["0ms", "API emit ProductDto[]", "waiting"],
-      ["20ms", "map แปลง name + price ให้เป็น label", "shared"],
-      ["40ms", "UI ได้ ProductViewModel[]", "done"],
+      ["ก่อน", "API ส่งรายการสินค้าแบบ raw data", "waiting"],
+      ["map", "เลือก id, name และคำนวณ priceWithVat", "shared"],
+      ["หลัง", "component ได้ object ใหม่ที่ใช้แสดงผลได้ตรงขึ้น", "done"],
     ],
   },
   filter: {
     title: "filter",
-    description: "ส่งต่อเฉพาะค่าที่ผ่านเงื่อนไข เหมาะกับการกัน keyword ที่สั้นเกินไปหรือกรองค่า null",
+    description: "ใช้คัดค่าที่ไม่ต้องการออกจาก stream ถ้าเงื่อนไขเป็นจริงค่านั้นจะไปต่อ ถ้าไม่จริงจะถูกข้าม",
     events: [
-      ["0ms", "keyword: a", "ignored"],
-      ["120ms", "keyword: an", "done"],
-      ["240ms", "keyword: ''", "ignored"],
-      ["360ms", "keyword: angular", "done"],
+      ["input", "พิมพ์ 'a' สั้นเกินไป ไม่ค้นหา", "ignored"],
+      ["input", "พิมพ์ 'an' ผ่านเงื่อนไข length >= 2", "done"],
+      ["input", "ค่าว่างถูกข้าม", "ignored"],
+      ["input", "พิมพ์ 'angular' ส่งต่อไปเรียก API", "done"],
     ],
   },
   tap: {
     title: "tap",
-    description: "ทำงานเสริมโดยไม่เปลี่ยนค่าหลักใน stream เช่น log, analytics หรือ set loading",
+    description: "ใช้ทำงานแทรกระหว่างทาง เช่น log หรือเปิด loading โดยไม่เปลี่ยนค่าที่ส่งต่อไปยัง operator ถัดไป",
     events: [
-      ["0ms", "request เริ่ม", "waiting"],
-      ["20ms", "tap: loading = true", "shared"],
-      ["640ms", "response ผ่าน stream เหมือนเดิม", "done"],
-      ["660ms", "tap: log debug info", "shared"],
+      ["เริ่ม", "เรียก API โหลดสินค้า", "waiting"],
+      ["tap", "ตั้ง loading = true", "shared"],
+      ["response", "ข้อมูลสินค้ายังเป็นชุดเดิม ไม่ถูกแก้", "done"],
+      ["tap", "log จำนวนสินค้าที่โหลดได้", "shared"],
     ],
   },
   startWith: {
     title: "startWith",
-    description: "กำหนดค่าเริ่มต้นให้ stream emit ก่อนค่าจริงจะมาถึง เหมาะกับ combineLatest และ initial UI state",
+    description: "ใช้ใส่ค่าเริ่มต้นให้ stream ทันที เช่น filter เริ่มต้นเป็น 'all' ก่อนผู้ใช้เลือกค่าเอง",
     events: [
-      ["0ms", "startWith('all') emit ค่าเริ่มต้น", "done"],
-      ["420ms", "user เลือก category books", "shared"],
-      ["840ms", "user เลือก category courses", "shared"],
+      ["เริ่มหน้า", "ใช้ค่า category = 'all'", "done"],
+      ["ผู้ใช้เลือก", "category เปลี่ยนเป็น 'books'", "shared"],
+      ["ผู้ใช้เลือก", "category เปลี่ยนเป็น 'courses'", "shared"],
     ],
   },
   debounceTime: {
     title: "debounceTime",
-    description: "รอให้ stream เงียบช่วงหนึ่งก่อนปล่อยค่าล่าสุด เหมาะกับช่องค้นหาที่ไม่ควรเรียก API ทุกครั้งที่พิมพ์",
+    description: "ใช้รอให้ source หยุดส่งค่าช่วงหนึ่ง แล้วค่อยปล่อยค่าล่าสุด เหมาะกับ input ที่เปลี่ยนถี่",
     events: [
-      ["0ms", "user typed: a", "waiting"],
-      ["120ms", "user typed: an", "waiting"],
-      ["260ms", "user typed: angular", "waiting"],
-      ["560ms", "ปล่อยค่า angular หลังหยุดพิมพ์ 300ms", "done"],
+      ["พิมพ์", "a", "waiting"],
+      ["พิมพ์ต่อ", "an", "waiting"],
+      ["พิมพ์ต่อ", "angular", "waiting"],
+      ["หยุดพิมพ์", "ส่งค่า 'angular' ไปค้นหา", "done"],
     ],
   },
   switchMap: {
     title: "switchMap",
-    description: "เมื่อมีค่าใหม่เข้ามา จะยกเลิก inner Observable เดิมแล้วเริ่มงานใหม่ เหมาะกับ search และ route detail",
+    description: "ใช้เมื่อค่าใหม่ควรแทนงานเก่า เช่น search หรือ route detail ถ้ามีค่าใหม่เข้ามาจะยกเลิก request เดิม",
     events: [
-      ["0ms", "request A เริ่ม", "waiting"],
-      ["180ms", "request A ถูก cancel เพราะมีคำใหม่", "cancelled"],
-      ["180ms", "request B เริ่ม", "waiting"],
-      ["360ms", "request B ถูก cancel เพราะมีคำใหม่", "cancelled"],
-      ["360ms", "request C เริ่มและเป็นผลลัพธ์สุดท้าย", "done"],
+      ["ค้นหา", "คำว่า 'a' เริ่ม request แรก", "waiting"],
+      ["พิมพ์ใหม่", "request แรกถูกยกเลิก", "cancelled"],
+      ["ค้นหา", "คำว่า 'an' เริ่ม request ใหม่", "waiting"],
+      ["พิมพ์ใหม่", "request 'an' ถูกยกเลิก", "cancelled"],
+      ["ล่าสุด", "ใช้ผลลัพธ์ของคำว่า 'angular'", "done"],
     ],
   },
   mergeMap: {
     title: "mergeMap",
-    description: "แปลงแต่ละค่าเป็น async task แล้วปล่อยให้ทำพร้อมกัน เหมาะกับ upload หลายไฟล์หรืองานที่เป็นอิสระต่อกัน",
+    description: "ใช้เมื่อทุกค่าที่เข้ามาควรถูกนำไปทำงาน และงานเหล่านั้นทำพร้อมกันได้ เช่น upload หลายไฟล์",
     events: [
-      ["0ms", "upload file A เริ่ม", "waiting"],
-      ["80ms", "upload file B เริ่มพร้อมกัน", "waiting"],
-      ["140ms", "upload file C เริ่มพร้อมกัน", "waiting"],
-      ["520ms", "file B เสร็จก่อน", "done"],
-      ["760ms", "file A เสร็จ", "done"],
-      ["980ms", "file C เสร็จ", "done"],
+      ["เริ่ม", "upload file A", "waiting"],
+      ["เริ่ม", "upload file B พร้อมกัน", "waiting"],
+      ["เริ่ม", "upload file C พร้อมกัน", "waiting"],
+      ["เสร็จ", "file B เสร็จก่อนก็ส่งผลลัพธ์ก่อนได้", "done"],
+      ["เสร็จ", "file A เสร็จ", "done"],
+      ["เสร็จ", "file C เสร็จ", "done"],
     ],
   },
   concatMap: {
     title: "concatMap",
-    description: "จัดคิว async task ให้ทำทีละงานตามลำดับ เหมาะกับ save queue หรือคำสั่งที่ห้ามสลับลำดับ",
+    description: "ใช้เมื่อทุกค่าต้องถูกนำไปทำงานแบบเรียงลำดับ งานถัดไปจะรอให้งานก่อนหน้าเสร็จก่อน",
     events: [
-      ["0ms", "save A เริ่ม", "waiting"],
-      ["120ms", "save B เข้าคิว", "waiting"],
-      ["240ms", "save C เข้าคิว", "waiting"],
-      ["620ms", "save A เสร็จ แล้วเริ่ม B", "done"],
-      ["980ms", "save B เสร็จ แล้วเริ่ม C", "done"],
-      ["1280ms", "save C เสร็จ", "done"],
+      ["เริ่ม", "save A", "waiting"],
+      ["รอคิว", "save B ยังไม่เริ่ม", "waiting"],
+      ["รอคิว", "save C ยังไม่เริ่ม", "waiting"],
+      ["ต่อคิว", "save A เสร็จ แล้วค่อยเริ่ม B", "done"],
+      ["ต่อคิว", "save B เสร็จ แล้วค่อยเริ่ม C", "done"],
+      ["จบ", "save C เสร็จ", "done"],
     ],
   },
   exhaustMap: {
     title: "exhaustMap",
-    description: "ถ้างานเดิมยังไม่เสร็จ ค่าใหม่จะถูกเมิน เหมาะกับปุ่ม submit หรือ login ที่ต้องกันการกดซ้ำ",
+    description: "ใช้เมื่อไม่ต้องการเริ่มงานใหม่ระหว่างที่งานเดิมยังไม่เสร็จ เช่นปุ่ม login หรือ submit",
     events: [
-      ["0ms", "click submit ครั้งที่ 1 เริ่ม request", "waiting"],
-      ["120ms", "click ครั้งที่ 2 ถูก ignore", "ignored"],
-      ["280ms", "click ครั้งที่ 3 ถูก ignore", "ignored"],
-      ["880ms", "request แรกเสร็จ รับ click ถัดไปได้", "done"],
+      ["click", "ครั้งที่ 1 เริ่ม login request", "waiting"],
+      ["click", "ครั้งที่ 2 ถูกข้าม เพราะ request แรกยังไม่เสร็จ", "ignored"],
+      ["click", "ครั้งที่ 3 ถูกข้ามเช่นกัน", "ignored"],
+      ["เสร็จ", "request แรกจบแล้ว จึงรับ click ใหม่ได้", "done"],
     ],
   },
   forkJoin: {
     title: "forkJoin",
-    description: "เริ่ม Observable หลายตัวพร้อมกัน แล้ว emit ครั้งเดียวเมื่อทุกตัว complete เหมาะกับ dashboard ที่ต้องโหลดหลาย API",
+    description: "ใช้รวม Observable หลายตัวที่ต้อง complete ทั้งหมดก่อน จึงค่อยส่งผลลัพธ์รวมออกมา",
     events: [
-      ["0ms", "profile$, orders$, alerts$ เริ่มพร้อมกัน", "waiting"],
-      ["480ms", "profile$ complete", "done"],
-      ["760ms", "alerts$ complete", "done"],
-      ["1120ms", "orders$ complete", "done"],
-      ["1120ms", "forkJoin emit object รวมทั้งหมด", "shared"],
+      ["เริ่ม", "โหลด profile, orders และ alerts พร้อมกัน", "waiting"],
+      ["เสร็จ", "profile โหลดเสร็จ", "done"],
+      ["เสร็จ", "alerts โหลดเสร็จ", "done"],
+      ["เสร็จ", "orders โหลดเสร็จ", "done"],
+      ["รวมผล", "ได้ข้อมูลครบแล้วค่อย render dashboard", "shared"],
     ],
   },
   combineLatest: {
     title: "combineLatest",
-    description: "รวมค่าล่าสุดจากหลาย stream และ emit ใหม่เมื่อ stream ใด stream หนึ่งเปลี่ยน เหมาะกับ filter, sort และ data",
+    description: "ใช้รวมค่าล่าสุดจากหลาย stream แล้วคำนวณผลลัพธ์ใหม่ทุกครั้งที่ stream ใด stream หนึ่งเปลี่ยน",
     events: [
-      ["0ms", "products$ emit รายการสินค้า", "waiting"],
-      ["220ms", "category$ emit all", "waiting"],
-      ["420ms", "sort$ emit popular แล้ว combineLatest emit รอบแรก", "done"],
-      ["900ms", "category$ เปลี่ยนเป็น books แล้ว emit ใหม่", "shared"],
-      ["1260ms", "sort$ เปลี่ยนเป็น price แล้ว emit ใหม่", "shared"],
+      ["data", "products โหลดเสร็จ", "waiting"],
+      ["filter", "category เริ่มต้นเป็น all", "waiting"],
+      ["sort", "sort เริ่มต้นเป็น popular แล้วแสดงรายการครั้งแรก", "done"],
+      ["filter", "category เปลี่ยนเป็น books จึงคำนวณใหม่", "shared"],
+      ["sort", "sort เปลี่ยนเป็น price จึงคำนวณใหม่", "shared"],
     ],
   },
   catchError: {
     title: "catchError",
-    description: "จับ error ใน stream แล้วเปลี่ยนเป็น fallback Observable เพื่อให้ UI ยังแสดงผลต่อได้",
+    description: "ใช้ดัก error แล้วคืน Observable สำรอง เช่น of([]) หรือ of(null) เพื่อให้ flow ไปต่อได้",
     events: [
-      ["0ms", "request เริ่ม", "waiting"],
-      ["520ms", "API error 500", "error"],
-      ["540ms", "catchError คืนค่า fallback []", "shared"],
-      ["560ms", "UI render empty state แทนหน้าพัง", "done"],
+      ["เริ่ม", "เรียก API โหลดสินค้า", "waiting"],
+      ["error", "API ตอบกลับ 500", "error"],
+      ["fallback", "catchError คืนค่า []", "shared"],
+      ["แสดงผล", "หน้าเว็บแสดง empty state แทนการล้ม", "done"],
     ],
   },
   shareReplay: {
     title: "shareReplay",
-    description: "แชร์ผลลัพธ์ Observable และส่งค่าล่าสุดให้ subscriber ใหม่ เหมาะกับการ cache HTTP response",
+    description: "ใช้แชร์การ subscribe และส่งค่าล่าสุดให้ subscriber ใหม่ เหมาะกับข้อมูลที่หลาย component ใช้ร่วมกัน",
     events: [
-      ["0ms", "Component A subscribe แล้ว HTTP เริ่ม", "waiting"],
-      ["700ms", "HTTP complete และ cache response", "done"],
-      ["900ms", "Component B subscribe", "shared"],
-      ["900ms", "ได้ค่า cached ทันที ไม่ยิง HTTP ซ้ำ", "done"],
+      ["A", "Component A ขอข้อมูล user", "waiting"],
+      ["API", "HTTP โหลดเสร็จ และจำค่าล่าสุดไว้", "done"],
+      ["B", "Component B ขอข้อมูล user ทีหลัง", "shared"],
+      ["cache", "Component B ได้ค่าเดิมทันที ไม่ต้องเรียก API ซ้ำ", "done"],
     ],
   },
 };
@@ -303,6 +308,40 @@ function initCopyButtons() {
   });
 }
 
+function openPaymentModal() {
+  paymentModal.classList.add("open");
+  paymentModal.setAttribute("aria-hidden", "false");
+  paymentStatus.textContent = "";
+  document.querySelector("#cardName").focus();
+}
+
+function closePaymentModal(scrollToDemo = true) {
+  paymentModal.classList.remove("open");
+  paymentModal.setAttribute("aria-hidden", "true");
+
+  if (scrollToDemo) {
+    document.querySelector("#playground").scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function confirmFakePayment(event) {
+  event.preventDefault();
+  fakePayButton.disabled = true;
+  fakePayButton.textContent = "กำลังยืนยัน...";
+  paymentStatus.textContent = "กำลังตรวจสอบข้อมูล";
+
+  setTimeout(() => {
+    paymentStatus.textContent = "ยืนยันสำเร็จ";
+    fakePayButton.textContent = "สำเร็จ กำลังพาไปต่อ";
+
+    setTimeout(() => {
+      fakePayButton.disabled = false;
+      fakePayButton.textContent = "ยืนยันการชำระเงิน";
+      closePaymentModal(true);
+    }, 800);
+  }, 850);
+}
+
 searchInput.addEventListener(
   "input",
   debounce((event) => simulateSwitchMap(event.target.value), 250)
@@ -310,6 +349,19 @@ searchInput.addEventListener(
 
 loadDashboard.addEventListener("click", simulateForkJoin);
 runOperator.addEventListener("click", runOperatorSimulation);
+demoPaywallButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  openPaymentModal();
+});
+checkoutForm.addEventListener("submit", confirmFakePayment);
+document.querySelectorAll("[data-close-payment]").forEach((button) => {
+  button.addEventListener("click", () => closePaymentModal(true));
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && paymentModal.classList.contains("open")) {
+    closePaymentModal(false);
+  }
+});
 
 initOperatorPicker();
 initTabs();

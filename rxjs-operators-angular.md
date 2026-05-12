@@ -27,14 +27,15 @@ RxJS operators ทำหน้าที่กำหนดพฤติกรร�
 
 ### `map`
 
-ใช้แปลงค่าที่ไหลผ่าน stream จากรูปแบบหนึ่งเป็นอีกรูปแบบหนึ่ง พบบ่อยหลังเรียก API เช่น แปลง DTO ให้เป็น view model ที่ UI ใช้งานได้สะดวก
+ใช้แปลงค่าที่ไหลผ่าน stream ให้เป็นค่าใหม่ โดยไม่เปลี่ยนจังหวะของ stream เช่น เลือกเฉพาะ field ที่ต้องใช้ คำนวณค่าเพิ่ม หรือแปลง response ให้ component ใช้งานต่อได้ง่ายขึ้น
 
 ```ts
 readonly productCards$ = this.productService.getProducts().pipe(
   map((products) =>
     products.map((item) => ({
       id: item.id,
-      label: `${item.name} - ${item.price} THB`,
+      name: item.name,
+      priceWithVat: item.price * 1.07,
       inStock: item.stock > 0,
     }))
   )
@@ -43,7 +44,7 @@ readonly productCards$ = this.productService.getProducts().pipe(
 
 จำง่าย ๆ:
 
-> input หนึ่งค่า เข้าไปแล้วออกมาเป็น output หนึ่งค่าในรูปแบบใหม่
+> input หนึ่งค่าเข้าไป แล้ว output หนึ่งค่าใหม่ออกมา
 
 ### `filter`
 
@@ -59,7 +60,7 @@ readonly validKeyword$ = this.searchControl.valueChanges.pipe(
 
 ### `tap`
 
-ใช้ทำงานเสริมโดยไม่เปลี่ยนค่าหลักใน stream เช่น log, analytics, set loading หรือ debug
+ใช้ทำ side effect โดยไม่เปลี่ยนค่าที่ส่งต่อใน stream เช่น log, analytics, set loading หรือ debug
 
 ```ts
 readonly products$ = this.productService.getProducts().pipe(
@@ -142,7 +143,7 @@ readonly products$ = this.productService.getProducts().pipe(
 ใช้เมื่อ:
 
 - API ล้มแล้วแสดง empty state
-- บาง request ใน `forkJoin` พัง แต่ไม่อยากให้ทั้งหน้าพัง
+- บาง request ใน `forkJoin` error แต่ไม่อยากให้ทั้งหน้าแสดง error ตามไปด้วย
 - แปลง technical error เป็น user-friendly state
 
 ### `retry`
@@ -247,7 +248,7 @@ from(files).pipe(
 ใช้เมื่อ:
 
 - Upload หลายไฟล์
-- ยิง request หลายงานที่ไม่ต้องเรียงลำดับ
+- เรียก request หลายงานที่ไม่ต้องเรียงลำดับ
 - Event แต่ละตัวต้องทำงานให้ครบ ไม่ควรถูก cancel
 
 ### `concatMap`
@@ -268,7 +269,7 @@ from(changes).pipe(
 
 ### `exhaustMap`
 
-ถ้างานเดิมยังไม่เสร็จ ค่าใหม่จะถูกเมิน เหมาะกับปุ่ม submit หรือ login ที่ต้องกันการกดซ้ำ
+ถ้างานเดิมยังไม่เสร็จ ค่าใหม่จะถูกข้าม เหมาะกับปุ่ม submit หรือ login ที่ต้องกันการกดซ้ำ
 
 ```ts
 readonly loginResult$ = this.loginClicks$.pipe(
@@ -361,7 +362,7 @@ readonly currentUser$ = this.http.get<User>('/api/me').pipe(
 ใช้เมื่อ:
 
 - หลาย component ใช้ข้อมูลเดียวกัน
-- ไม่อยากยิง HTTP ซ้ำทุกครั้งที่มี subscriber ใหม่
+- ไม่อยากเรียก HTTP ซ้ำทุกครั้งที่มี subscriber ใหม่
 - ต้องการ cache response ล่าสุดในช่วงที่ยังมี subscriber
 
 ข้อควรระวัง:
