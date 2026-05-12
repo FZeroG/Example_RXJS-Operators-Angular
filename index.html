@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Angular RxJS Operators Guide</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#hero">Angular RxJS</a>
+    <nav aria-label="หัวข้อหลัก">
+      <a href="#operator-gallery">Operators</a>
+      <a href="#playground">Interactive</a>
+      <a href="#code">Code</a>
+      <a href="rxjs-operators-angular.md">Markdown</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Basic to Advanced RxJS</p>
+        <h1>จัดระเบียบงาน Async ใน Angular ด้วย RxJS Operators</h1>
+        <p>
+          คู่มือฉบับย่อสำหรับทำความเข้าใจ RxJS operators ที่ใช้บ่อยใน Angular
+          ตั้งแต่พื้นฐานไปจนถึงระดับ advanced ครอบคลุมการแปลงข้อมูล การกรองค่า
+          การหน่วงเวลา การจัดการ error การยกเลิกงาน การรวมหลาย stream และการ cache ข้อมูล.
+          แก่นสำคัญคือเลือก operator ให้ตรงกับพฤติกรรมของงาน asynchronous ที่ต้องการ.
+        </p>
+        <div class="hero-actions">
+          <a class="primary-link" href="#playground">ลอง interactive demo</a>
+          <a class="secondary-link" href="rxjs-operators-angular.md">อ่าน Markdown</a>
+        </div>
+      </div>
+      <div class="stream-board" aria-label="ภาพจำของ data stream">
+        <div class="stream-card active">
+          <span>transform</span>
+          <strong>map</strong>
+          <small>แปลงข้อมูลจาก API ให้อยู่ในรูปแบบที่ UI ใช้ได้ง่าย</small>
+        </div>
+        <div class="stream-card success">
+          <span>user input</span>
+          <strong>debounceTime</strong>
+          <small>รอให้ผู้ใช้หยุดพิมพ์ก่อนเริ่มค้นหา</small>
+        </div>
+        <div class="stream-card warm">
+          <span>HTTP flow</span>
+          <strong>switchMap</strong>
+          <small>ใช้ผลลัพธ์ล่าสุด และยกเลิกงานเก่าที่ไม่จำเป็น</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="operator-gallery">
+      <p class="eyebrow">Operator Map</p>
+      <h2>ภาพรวม Operators ที่ควรรู้ ตั้งแต่พื้นฐานถึง Advanced</h2>
+      <div class="operator-grid">
+        <article><span>Basic</span><h3>map</h3><p>แปลงข้อมูลใน stream ให้เป็นรูปแบบที่ต้องการ</p></article>
+        <article><span>Basic</span><h3>filter</h3><p>ส่งต่อเฉพาะค่าที่ผ่านเงื่อนไข</p></article>
+        <article><span>Basic</span><h3>tap</h3><p>ทำงานเสริม เช่น log หรือ set loading โดยไม่เปลี่ยนค่าหลัก</p></article>
+        <article><span>Basic</span><h3>startWith</h3><p>กำหนดค่าเริ่มต้นให้ stream ก่อนค่าจริงจะมาถึง</p></article>
+        <article><span>Timing</span><h3>debounceTime</h3><p>หน่วงเวลาเพื่อรอค่าที่นิ่ง เหมาะกับช่องค้นหา</p></article>
+        <article><span>Filtering</span><h3>distinctUntilChanged</h3><p>ข้ามค่าซ้ำที่ติดกัน ลดการเรียก API โดยไม่จำเป็น</p></article>
+        <article><span>Error</span><h3>catchError</h3><p>แปลง error ให้เป็นค่าทดแทนที่ UI รับมือได้</p></article>
+        <article><span>Cleanup</span><h3>takeUntil</h3><p>หยุด stream ตามสัญญาณที่กำหนด เช่น ตอน component ถูกทำลาย</p></article>
+        <article><span>Loading</span><h3>finalize</h3><p>ทำงานปิดท้ายเสมอ ไม่ว่า stream จะสำเร็จหรือ error</p></article>
+        <article><span>Flattening</span><h3>switchMap</h3><p>ใช้เฉพาะงานล่าสุด และยกเลิกงานเก่า</p></article>
+        <article><span>Flattening</span><h3>mergeMap</h3><p>เริ่มหลายงานพร้อมกัน เหมาะกับงานที่เป็นอิสระต่อกัน</p></article>
+        <article><span>Flattening</span><h3>concatMap</h3><p>จัดคิวงาน async ให้ทำตามลำดับ</p></article>
+        <article><span>Flattening</span><h3>exhaustMap</h3><p>ไม่รับ event ใหม่ระหว่างที่งานเดิมยังไม่เสร็จ</p></article>
+        <article><span>Combination</span><h3>forkJoin</h3><p>รอหลาย request ให้เสร็จครบ แล้วส่งผลลัพธ์ครั้งเดียว</p></article>
+        <article><span>Combination</span><h3>combineLatest</h3><p>รวมค่าล่าสุดจากหลาย stream เพื่อสร้าง state เดียว</p></article>
+        <article><span>Sharing</span><h3>shareReplay</h3><p>แชร์ผลลัพธ์ล่าสุดให้หลาย subscriber โดยไม่เรียกซ้ำ</p></article>
+      </div>
+    </section>
+
+    <section class="section playground" id="playground">
+      <p class="eyebrow">Interactive Demo</p>
+      <h2>เลือก Operator แล้วดูพฤติกรรมของ Stream</h2>
+      <div class="demo-grid">
+        <article class="panel wide">
+          <div class="panel-heading">
+            <div>
+              <h3>Operator Behavior Simulator</h3>
+              <p>เลือก operator แล้วกด run เพื่อดูว่า stream ตอบสนองต่อเหตุการณ์และงาน async อย่างไร</p>
+            </div>
+          </div>
+
+          <div class="operator-picker" id="operatorPicker" aria-label="เลือก operator">
+            <button class="chip active" type="button" data-operator="map">map</button>
+            <button class="chip" type="button" data-operator="filter">filter</button>
+            <button class="chip" type="button" data-operator="tap">tap</button>
+            <button class="chip" type="button" data-operator="startWith">startWith</button>
+            <button class="chip" type="button" data-operator="debounceTime">debounceTime</button>
+            <button class="chip" type="button" data-operator="switchMap">switchMap</button>
+            <button class="chip" type="button" data-operator="mergeMap">mergeMap</button>
+            <button class="chip" type="button" data-operator="concatMap">concatMap</button>
+            <button class="chip" type="button" data-operator="exhaustMap">exhaustMap</button>
+            <button class="chip" type="button" data-operator="forkJoin">forkJoin</button>
+            <button class="chip" type="button" data-operator="combineLatest">combineLatest</button>
+            <button class="chip" type="button" data-operator="catchError">catchError</button>
+            <button class="chip" type="button" data-operator="shareReplay">shareReplay</button>
+          </div>
+
+          <div class="simulator-layout">
+            <div class="operator-brief">
+              <p class="eyebrow">Selected Operator</p>
+              <h3 id="operatorTitle">map</h3>
+              <p id="operatorDescription"></p>
+              <button class="load-button" id="runOperator" type="button">Run simulation</button>
+            </div>
+            <div class="timeline" id="timeline" aria-live="polite"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h3>Search flow</h3>
+              <p>ตัวอย่างการค้นหาใน Angular: หน่วงเวลา กันค่าซ้ำ และใช้ผลลัพธ์ล่าสุด</p>
+            </div>
+          </div>
+          <label for="searchInput">ลองพิมพ์คำค้นหา</label>
+          <input id="searchInput" type="text" value="angular" autocomplete="off">
+          <div class="request-log" id="searchLog" aria-live="polite"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div>
+              <h3>Dashboard load</h3>
+              <p>ตัวอย่างการโหลดข้อมูลหลาย API พร้อมกัน แล้วรอให้ครบก่อนแสดงผล</p>
+            </div>
+          </div>
+          <button class="load-button" id="loadDashboard" type="button">Load dashboard data</button>
+          <div class="dashboard-result" id="dashboardResult" aria-live="polite"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="code">
+      <p class="eyebrow">Angular Code</p>
+      <h2>ตัวอย่างโค้ด Angular สำหรับ Operators สำคัญ</h2>
+      <div class="code-tabs" role="tablist" aria-label="ตัวอย่างโค้ด">
+        <button class="tab-btn active" type="button" data-tab="search-code">Search Flow</button>
+        <button class="tab-btn" type="button" data-tab="basic-code">Basic</button>
+        <button class="tab-btn" type="button" data-tab="flatten-code">Map Operators</button>
+        <button class="tab-btn" type="button" data-tab="combine-code">Combination</button>
+        <button class="tab-btn" type="button" data-tab="safety-code">Safety</button>
+      </div>
+
+      <article class="code-panel active" id="search-code">
+        <button class="copy-btn" type="button">Copy</button>
+<pre><code>readonly results$ = this.searchControl.valueChanges.pipe(
+  debounceTime(300),
+  distinctUntilChanged(),
+  filter((keyword) =&gt; keyword.trim().length &gt;= 2),
+  switchMap((keyword) =&gt;
+    this.productService.search(keyword).pipe(
+      catchError(() =&gt; of([]))
+    )
+  )
+);</code></pre>
+      </article>
+
+      <article class="code-panel" id="basic-code">
+        <button class="copy-btn" type="button">Copy</button>
+<pre><code>readonly products$ = this.productService.getProducts().pipe(
+  map((products) =&gt; products.map((item) =&gt; ({
+    id: item.id,
+    label: `${item.name} - ${item.price} THB`,
+    inStock: item.stock &gt; 0,
+  }))),
+  filter((products) =&gt; products.length &gt; 0),
+  tap((products) =&gt; console.log('loaded products', products.length)),
+  startWith([])
+);</code></pre>
+      </article>
+
+      <article class="code-panel" id="flatten-code">
+        <button class="copy-btn" type="button">Copy</button>
+<pre><code>// switchMap: งานใหม่แทนงานเก่า
+route.params.pipe(
+  switchMap(({ id }) =&gt; this.userService.getUser(id))
+);
+
+// mergeMap: ทำพร้อมกัน เหมาะกับงานอิสระหลายชิ้น
+from(files).pipe(
+  mergeMap((file) =&gt; this.uploadService.upload(file), 3)
+);
+
+// concatMap: ทำเรียงลำดับ เหมาะกับ save queue
+from(changes).pipe(
+  concatMap((change) =&gt; this.documentService.save(change))
+);
+
+// exhaustMap: กันกดซ้ำระหว่าง submit
+submitClick$.pipe(
+  exhaustMap(() =&gt; this.authService.login(this.form.getRawValue()))
+);</code></pre>
+      </article>
+
+      <article class="code-panel" id="combine-code">
+        <button class="copy-btn" type="button">Copy</button>
+<pre><code>// forkJoin: รอ HTTP ทุกตัว complete แล้ว emit ครั้งเดียว
+readonly dashboard$ = forkJoin({
+  profile: this.userService.getProfile(),
+  orders: this.orderService.getRecentOrders(),
+  alerts: this.alertService.getUnreadAlerts(),
+});
+
+// combineLatest: รวมค่าล่าสุด เหมาะกับ filter + sort + data
+readonly visibleProducts$ = combineLatest([
+  this.products$,
+  this.categoryControl.valueChanges.pipe(startWith('all')),
+  this.sortControl.valueChanges.pipe(startWith('popular')),
+]).pipe(
+  map(([products, category, sort]) =&gt; filterAndSort(products, category, sort))
+);</code></pre>
+      </article>
+
+      <article class="code-panel" id="safety-code">
+        <button class="copy-btn" type="button">Copy</button>
+<pre><code>readonly user$ = this.http.get&lt;User&gt;('/api/me').pipe(
+  retry(2),
+  catchError(() =&gt; of(null)),
+  finalize(() =&gt; this.loading.set(false)),
+  shareReplay({ bufferSize: 1, refCount: true })
+);
+
+ngOnInit() {
+  this.socket.messages$.pipe(
+    takeUntilDestroyed(this.destroyRef)
+  ).subscribe((message) =&gt; this.messages.update((items) =&gt; [...items, message]));
+}</code></pre>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <p>เอกสารประกอบ: <a href="rxjs-operators-angular.md">rxjs-operators-angular.md</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
